@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Media Gallery Viewer</title>
+
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, Arial;
+  background: #f2f2f7;
+  margin: 0;
+}
+
+/* TOP BAR */
+.top-bar {
+  position: sticky;
+  top: 0;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(20px);
+  padding: 12px;
+  text-align: center;
+  z-index: 10;
+}
+
+input {
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  background: #e5e5ea;
+  outline: none;
+}
+
+button {
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: none;
+  background: #e5e5ea;
+  margin: 3px;
+  cursor: pointer;
+}
+
+.active, .active-view {
+  background: #007aff;
+  color: white;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 12px;
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.list-view { padding: 10px; }
+
+.list-item {
+  display: flex;
+  background: white;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 16px;
+}
+
+.list-item img, .list-item video {
+  width: 70px;
+  height: 55px;
+  margin-right: 10px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+img, video {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.file-thumb {
+  height: 120px;
+  background: #e5e5ea;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-ext {
+  background: white;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+#stats {
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* LIGHTBOX */
+#lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.9);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(15px);
+  flex-direction: column;
+}
+
+#viewer {
+  max-width: 90vw;
+  max-height: 75vh;
+  transition: transform 0.2s ease;
+  box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+  border-radius: 10px;
+}
+
+.lightbox-top {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.close-btn, .fileText {
+  background: #00000010;
+  padding: 6px 12px;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top-bar">
+  <input id="search" placeholder="Search..." oninput="render()"><br>
+
+  <button onclick="setFilter('all')" class="active">All</button>
+  <button onclick="setFilter('image')">Images</button>
+  <button onclick="setFilter('video')">Videos</button>
+  <button onclick="setFilter('file')">Files</button>
+
+  <br>
+
+  <button onclick="setView('grid')" class="active-view">Grid</button>
+  <button onclick="setView('list')">List</button>
+
+  <div id="stats">
+    Files: <span id="totalFiles"></span> |
+    Size: <span id="totalSize"></span>
+  </div>
+</div>
+
+<div id="gallery" class="grid"></div>
+<div id="lightbox"></div>
+
+<script>
+
+/* ================= DATA ================= */
+let files = ${JSON.stringify(allFiles || [])};
+
+let filter = "all";
+let view = "grid";
+let albumFilter = "all";
+
+/* LIGHTBOX STATE */
+let currentList = [];
+let currentIndex = -1;
+let scale = 1;
+let lastTap = 0;
+let startX = 0;
+let translateX = 0;
+let velocity = 0;
+let lastMoveTime = 0;
+
+/* ================= UTIL ================= */
+function formatDate(timestamp) {
+  let d = new Date(timestamp);
+  let now = new Date();
+  let diff = now - d;
+  let min = Math.floor(diff/60000);
+  let hr = Math.floor(diff/3600000);
+  let day = Math.floor(diff/86400000);
+
+  if(min < 1) return "just now";
+  if(min < 60) return min + " min ago";
+  if(hr < 24) return hr + " hours ago";
+  if(day === 1) return "Yesterday";
+  return d.toLocaleString();
+}
+
+function formatSize(b){
+  if(b < 1024) return b + " B";
+  if(b < 1048576) return (b/1024).toFixed(1) + " KB";
+  return (b/1048576).toFixed(1) + " MB";
+}
+
+/* ================= STATS ================= */
+function updateStats(){
+  let total = files.reduce((a,b)=>a+(b.size||0),0);
+  totalFiles.innerText = files.length;
+  totalSize.innerText = formatSize(total);
+}
+
+/* ================= RENDER ================= */
+function render(){
+  gallery.innerHTML = "";
+  gallery.className = view === "grid" ? "grid" : "list-view";
+
+  let s = search.value.toLowerCase();
+
+  files
+    .filter(f =>
+      (filter === "all" || f.type === filter) &&
+      (albumFilter === "all" || f.album === albumFilter) &&
+      f.name.toLowerCase().includes(s)
+    )
+    .forEach(f => {
+
+      let d = document.createElement("div");
+
+      if(view === "grid"){
+        d.className = "card";
+
+        if(f.type === "image"){
+          d.innerHTML = `<img src="${f.data}"><p>${f.name}</p>`;
+        } else if(f.type === "video"){
+          d.innerHTML = `<video src="${f.data}"></video><p>${f.name}</p>`;
+        } else {
+          let ext = f.name.split('.').pop().toUpperCase();
+          d.innerHTML = `<div class="file-thumb"><span class="file-ext">${ext}</span></div><p>${f.name}</p>`;
+        }
+
+        if(f.type !== "file") d.onclick = () => openFile(f);
+      }
+
+      else {
+        d.className = "list-item";
+        d.innerHTML = `
+          ${f.type==="image"?`<img src="${f.data}">`:f.type==="video"?`<video src="${f.data}"></video>`:""}
+          <div><b>${f.name}</b><br>${formatSize(f.size)} • ${formatDate(f.date)}</div>
+        `;
+        if(f.type !== "file") d.onclick = () => openFile(f);
+      }
+
+      gallery.appendChild(d);
+    });
+
+  updateStats();
+}
+
+/* ================= LIGHTBOX ================= */
+function openFile(f){
+
+  currentList = files.filter(x => x.type !== "file");
+  currentIndex = currentList.findIndex(x => x.data === f.data);
+
+  lightbox.innerHTML = `
+    <div class="lightbox-top">
+      <div class="fileText">${f.name}</div>
+      <div class="close-btn" onclick="closeLightbox()">Close</div>
+    </div>
+
+    ${f.type==="image"
+      ? `<img id="viewer" src="${f.data}">`
+      : `<video id="viewer" src="${f.data}" controls autoplay></video>`
+    }
+  `;
+
+  scale = 1;
+  translateX = 0;
+  lightbox.style.display = "flex";
+
+  attachGestures();
+}
+
+function closeLightbox(){
+  lightbox.style.display = "none";
+}
+
+/* ================= GESTURES ================= */
+function attachGestures(){
+  const el = document.getElementById("viewer");
+
+  let startDistance = 0;
+  let startScale = 1;
+
+  el.ontouchstart = (e)=>{
+    let t = e.touches;
+
+    if(t.length === 1){
+      startX = t[0].clientX;
+      lastMoveTime = Date.now();
+    }
+
+    if(t.length === 2){
+      startDistance = getDistance(t[0], t[1]);
+      startScale = scale;
+    }
+  };
+
+  el.ontouchmove = (e)=>{
+    let t = e.touches;
+
+    if(t.length === 1 && scale === 1){
+      let dx = t[0].clientX - startX;
+      el.style.transform = `translateX(${dx}px)`;
+      translateX = dx;
+    }
+
+    if(t.length === 2){
+      let dist = getDistance(t[0], t[1]);
+      scale = Math.min(4, Math.max(1, startScale * dist / startDistance));
+      el.style.transform = `scale(${scale})`;
+    }
+  };
+
+  el.ontouchend = ()=>{
+    if(scale === 1){
+      if(translateX > 80) prevFile();
+      else if(translateX < -80) nextFile();
+      else resetTransform();
+    }
+    setTimeout(resetTransform, 200);
+  };
+
+  el.onclick = ()=>{
+    let now = Date.now();
+    if(now - lastTap < 300){
+      scale = scale === 1 ? 2 : 1;
+      el.style.transform = `scale(${scale})`;
+    }
+    lastTap = now;
+  };
+}
+
+function getDistance(a,b){
+  return Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY);
+}
+
+/* ================= NAV ================= */
+function nextFile(){
+  if(currentIndex < currentList.length - 1){
+    openFile(currentList[currentIndex+1]);
+  }
+}
+
+function prevFile(){
+  if(currentIndex > 0){
+    openFile(currentList[currentIndex-1]);
+  }
+}
+
+function resetTransform(){
+  const el = document.getElementById("viewer");
+  if(!el) return;
+  scale = 1;
+  el.style.transform = "scale(1)";
+}
+
+/* ================= FILTERS ================= */
+function setFilter(f){ filter = f; render(); }
+function setView(v){ view = v; render(); }
+
+render();
+
+</script>
+
+</body>
+</html>
