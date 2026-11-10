@@ -517,6 +517,209 @@ textarea.inp{height:auto}
 .hljs-emphasis{font-style:italic}.hljs-strong{font-weight:700}
 .hljs{background:transparent}
 
+/* ===== 1) Flat header + side rail ===== */
+.bar{grid-column:1/-1;margin:0;padding:10px 16px 10px 12px;gap:6px;border:0;border-radius:0;background:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+.bar .ring{display:none}
+.title{margin-left:8px}
+.title b{font:400 22px/1.2 var(--font-d);letter-spacing:-.01em}
+.title small{display:none}
+#acctBtn{width:44px;height:44px;border-radius:50%;box-shadow:0 0 0 2px transparent,0 0 0 5px color-mix(in srgb,transparent 25%,transparent)}
+@media(max-width:899px){.hmb{display:none}}
+@media(min-width:900px){
+ .app{grid-template-columns:96px minmax(0,1fr);transition:grid-template-columns .25s var(--emph)}
+ .bar{grid-row:1}
+ .navbar{grid-column:1;grid-row:2/4;padding:14px 0 22px;border:0;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
+ .view{grid-row:2;grid-column:2;background:color-mix(in srgb,var(--text) 4.5%,transparent);border-radius:28px 0 0 0}
+ .app.rail-min{grid-template-columns:0 minmax(0,1fr)}
+ .app.rail-min .navbar{display:none}
+}
+
+/* ===== 2) Grouped user bubbles: first / between / last ===== */
+.day{--grp-mid:6px}
+.day .msg.user:not(.msg.user + .msg.user):has(+ .msg.user) .li-main{border-radius:20px 20px 10px 10px}
+.day .msg.user + .msg.user:has(+ .msg.user) .li-main{border-radius:10px}
+.day .msg.user + .msg.user:not(:has(+ .msg.user)) .li-main{border-radius:10px 10px 20px 20px}
+
+/* ===== 3) Live syntax highlighting + line numbers in the editor ===== */
+.ed-wrap{position:relative;flex:1;min-height:50vh;display:flex}
+.ed-wrap .ed-ta{position:relative;z-index:1;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:var(--text);scrollbar-gutter:stable}
+.ed-hl{position:absolute;inset:0;margin:0;padding:16px max(16px,calc((100% - 960px)/2));overflow:hidden;scrollbar-gutter:stable;pointer-events:none;font:13.5px/1.65 var(--mono);white-space:pre;tab-size:2}
+.ed-hl.wrapl{white-space:pre-wrap;overflow-wrap:anywhere}
+.ed-hl code{display:block;padding:0;background:transparent;font:inherit}
+/* line-number gutter (hidden in wrap mode, where lines would no longer align) */
+.ed-ln{position:absolute;left:0;top:0;bottom:0;width:54px;z-index:2;margin:0;padding:16px 10px 40px 0;overflow:hidden;pointer-events:none;text-align:right;white-space:pre;font:13.5px/1.65 var(--mono);color:var(--text3);border-right:1px solid var(--edge);background:color-mix(in srgb,var(--bg) 55%,transparent);user-select:none}
+.ed-wrap .ed-ta,.ed-wrap .ed-hl{padding-left:68px}
+.ed-wrap.wrapl .ed-ln{display:none}
+.ed-wrap.wrapl .ed-ta,.ed-wrap.wrapl .ed-hl{padding-left:max(16px,calc((100% - 960px)/2))}
+
+/* ===== 4) Viewer stage scrolls both ways ===== */
+.stage{overflow:auto;overscroll-behavior:contain}
+
+/* ===== 5) Chat tools row (pin bar + dropdown) ===== */
+.ctools{display:flex;align-items:center;gap:8px;width:min(880px,calc(100% - 24px));margin:10px auto 4px}
+.ctools .pinbar{flex:1;min-width:0;width:auto;margin:0}
+.ctools #tmore{margin-left:auto;background:var(--glass);border:1px solid var(--edge)}
+.ctools #tmore svg{width:22px;height:22px}
+#tmenu{min-width:210px}
+#tmenu .mi svg{width:20px;height:20px;fill:currentColor}
+
+/* ===== 6) Day separator is clickable (calendar jump) ===== */
+.dsep{cursor:pointer;transition:background .2s,border-color .2s}
+.dsep:hover{border-color:var(--primary);color:var(--text)}
+.feed.selecting .dsep{cursor:default}
+.cal-card{width:min(360px,100%)}
+.cal-top{display:flex;align-items:center;gap:6px;padding:16px 12px 6px 18px}
+.cal-top b{flex:1;font:700 16px var(--font-d);letter-spacing:-.01em}
+.cal-wd,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 14px}
+.cal-wd{padding-top:6px;padding-bottom:4px;text-align:center;font:600 11px var(--font-d);color:var(--text3);text-transform:uppercase}
+.cal-grid{padding-bottom:6px}
+.cal-d{height:40px;border-radius:50%;font:500 14px var(--font-d);color:var(--text3);transition:background .15s,color .15s}
+.cal-d:hover{background:var(--glass2)}
+.cal-d.has{color:var(--text);font-weight:700;background:var(--pc)}
+.cal-d.cur{background:var(--grad2);color:var(--on-primary)}
+.cal-d.today:not(.cur){box-shadow:inset 0 0 0 1.5px var(--primary)}
+.cal-foot{display:flex;justify-content:space-between;align-items:center;padding:8px 16px 16px;gap:8px}
+.cal-foot small{color:var(--text3);font-size:12px}
+
+/* ===== 7) Long message bodies: view more / view less ===== */
+.body.clamped{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:10;line-clamp:10;overflow:hidden}
+.bmore{display:inline-flex;align-items:center;margin:2px 0 4px;padding:3px 12px;border-radius:var(--r-full);background:var(--pc);color:var(--primary);font:600 12px var(--font-d);transition:background .2s}
+.bmore:hover{background:color-mix(in srgb,var(--primary) 32%,transparent)}
+
+/* ===== 8) Text size now applies to the whole app, not just chat =====
+   script.js sets --ts; every fixed-px size below is multiplied by it. */
+.title b{font-size:calc(22px*var(--ts,1))}
+.lcard h1{font-size:calc(29px*var(--ts,1))}
+.field input{font-size:calc(16px*var(--ts,1))}
+.err{font-size:calc(13px*var(--ts,1))}
+.foot{font-size:calc(11.5px*var(--ts,1))}
+.nd{font-size:calc(11.5px*var(--ts,1))}
+.pt b{font-size:calc(12px*var(--ts,1))}
+.pt span,.quote span,.ctxbar span{font-size:calc(13px*var(--ts,1))}
+.quote b,.ctxbar b{font-size:calc(12px*var(--ts,1))}
+.dsep{font-size:calc(12px*var(--ts,1))}
+.li-foot{font-size:calc(12px*var(--ts,1))}
+.hint{font-size:calc(11px*var(--ts,1))}
+.pinfo b{font-size:calc(13px*var(--ts,1))}
+.pinfo small{font-size:calc(11.5px*var(--ts,1))}
+.att .info b{font-size:calc(14px*var(--ts,1))}
+.att .info small{font-size:calc(12px*var(--ts,1))}
+.tile b{font-size:calc(13.5px*var(--ts,1))}
+.tile small{font-size:calc(11.5px*var(--ts,1))}
+.tile .tdate{font-size:calc(11px*var(--ts,1))}
+.ftitle h2{font-size:calc(26px*var(--ts,1))}
+.fbadge{font-size:calc(12px*var(--ts,1))}
+.finp{font-size:calc(15px*var(--ts,1))}
+.fchip{font-size:calc(12.5px*var(--ts,1))}
+.fchip small{font-size:calc(11px*var(--ts,1))}
+.fsel{font-size:calc(12px*var(--ts,1))}
+.fsel select{font-size:calc(13px*var(--ts,1))}
+.gsec{font-size:calc(12px*var(--ts,1))}
+.h-hi{font-size:calc(clamp(32px,6.4vw,54px)*var(--ts,1))}
+.h-date{font-size:calc(13px*var(--ts,1))}
+.h-act b{font-size:calc(15px*var(--ts,1))}
+.h-act small{font-size:calc(12.5px*var(--ts,1))}
+.h-sec b{font-size:calc(12px*var(--ts,1))}
+.h-sec button{font-size:calc(13px*var(--ts,1))}
+.tx b{font-size:calc(14.5px*var(--ts,1))}
+.tx small{font-size:calc(12.5px*var(--ts,1))}
+.h-empty{font-size:calc(14px*var(--ts,1))}
+.mi{font-size:calc(14px*var(--ts,1))}
+.msec,.tagnote{font-size:calc(11px*var(--ts,1))}
+.mhead b{font-size:calc(15px*var(--ts,1))}
+.mhead small{font-size:calc(12px*var(--ts,1))}
+.mrow b{font-size:calc(13.5px*var(--ts,1))}
+.mrow small{font-size:calc(11.5px*var(--ts,1))}
+.ms-text{font-size:calc(14px*var(--ts,1))}
+.ms-h b,.sheet-h b{font-size:calc(17px*var(--ts,1))}
+.ghost{font-size:calc(14px*var(--ts,1))}
+.btn{font-size:calc(15px*var(--ts,1))}
+.seg button{font-size:calc(13px*var(--ts,1))}
+.sw{font-size:calc(13px*var(--ts,1))}
+.note{font-size:calc(12.5px*var(--ts,1))}
+.toggle{font-size:calc(14px*var(--ts,1))}
+.vtitle b{font-size:calc(15px*var(--ts,1))}
+.vtitle small{font-size:calc(12px*var(--ts,1))}
+.vcount,.chip{font-size:calc(12px*var(--ts,1))}
+.tbl{font-size:calc(13.5px*var(--ts,1))}
+.tbl th{font-size:calc(12px*var(--ts,1))}
+.dlbox h2{font-size:calc(20px*var(--ts,1))}
+#dlText{font-size:calc(13px*var(--ts,1))}
+.dm-head b{font-size:calc(18px*var(--ts,1))}
+.dm-head small{font-size:calc(12.5px*var(--ts,1))}
+.dtx b{font-size:calc(14px*var(--ts,1))}
+.dtx small{font-size:calc(11.5px*var(--ts,1))}
+.cc-lang{font-size:calc(11px*var(--ts,1))}
+.cc-n{font-size:calc(12px*var(--ts,1))}
+.cc-meta{font-size:calc(11px*var(--ts,1))}
+.cc-btn,.cc-more{font-size:calc(12.5px*var(--ts,1))}
+.ed-ta,.ed-hl,.ed-ln{font-size:calc(13.5px*var(--ts,1))}
+.ed-bar{font-size:calc(12px*var(--ts,1))}
+.md pre.md-code{font-size:calc(13px*var(--ts,1))}
+.bmore{font-size:calc(12px*var(--ts,1))}
+.cal-top b{font-size:calc(16px*var(--ts,1))}
+.cal-d{font-size:calc(14px*var(--ts,1))}
+
+/* ===== 9) Pin bar: no box-shadow, floating decorative corner ===== */
+.pinbar{box-shadow:none}
+.pinbar::after{content:'';display:block;position:absolute;top:0;right:0;width:170px;height:170px;border-radius:0 0 0 200px;background:rgba(0,0,0,.02);z-index:-1;pointer-events:none;animation:float 3s ease-in-out infinite}
+@keyframes float{
+ 0%{transform:translate(0,0px)}
+ 50%{transform:translate(0,15px)}
+ 100%{transform:translate(0,-0px)}
+}
+
+/* ===== 10) Link permission dialog: long URLs wrap ===== */
+.dm-head>div{min-width:0}
+.dm-head small{overflow-wrap:anywhere}
+
+/* ===== chat: click a message -> dropdown, long-press -> select (3-dots button removed) ===== */
+.li-trail,.msg .more{display:none!important}
+.msg.li{cursor:pointer}
+.feed.selecting .msg.li{cursor:pointer}
+@media(hover:none){.msg.li{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}}
+
+/* ===== rich text inside messages ===== */
+.body strong{font-weight:700}
+.body em{font-style:italic}
+.body u{text-underline-offset:2px}
+.body code.mc{padding:1px 6px;border-radius:6px;background:var(--glass2);font:.9em var(--mono);overflow-wrap:anywhere}
+.body blockquote.mq{margin:4px 0;padding:4px 12px;border-left:3px solid var(--primary);border-radius:0 10px 10px 0;background:var(--glass2);color:var(--text2);white-space:pre-wrap}
+.body a{color:var(--primary);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
+.mdate{display:inline-flex;align-items:center;padding:1px 10px;border-radius:var(--r-full);background:var(--pc);font-weight:500;font-size:.92em;white-space:normal}
+
+/* ===== formatting toolbar ===== */
+.fmtbar{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin:0 2px 6px;padding:2px 2px 6px;border-bottom:1px solid var(--edge)}
+.fb{display:inline-flex;align-items:center;justify-content:center;min-width:36px;height:36px;padding:0 8px;border-radius:11px;color:var(--text2);font:600 14px var(--font-d);transition:background .15s,color .15s}
+.fb:hover{background:var(--glass2);color:var(--text)}
+.fb:active{transform:scale(.94)}
+.fb svg{width:20px;height:20px;fill:currentColor}
+.fb.b{font-weight:800}.fb.i{font-style:italic;font-family:Georgia,serif}.fb.u{text-decoration:underline}.fb.s{text-decoration:line-through}
+.fb.m{font:600 12.5px var(--mono)}
+.fsep{width:1px;height:22px;background:var(--edge);margin:0 4px}
+#fmtToggle.on{background:var(--pc);color:var(--primary)}
+
+/* ===== small form dialogs (link / date / schedule) ===== */
+.mf{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+.mf span{font:600 12px var(--font-d);color:var(--text3);letter-spacing:.04em}
+.mchips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.mchips .fchip{height:34px}
+
+/* ===== scheduled bar + sheet ===== */
+.schedbar{display:flex;align-items:center;gap:10px;width:min(880px,calc(100% - 24px));margin:6px auto 0;padding:8px 14px;border-radius:16px;background:var(--pc);box-shadow:inset 3px 0 0 var(--primary);color:var(--text);font:500 13px var(--font-d);text-align:left}
+.schedbar .ic{color:var(--primary)}
+.schedbar span.t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#messages.selecting ~ .schedbar{display:none}
+.sc-item{margin:6px 12px;padding:12px 14px;border-radius:16px;background:var(--glass2);border:1px solid var(--edge)}
+.sc-when{font:600 12px var(--font-d);color:var(--primary);margin-bottom:4px}
+.sc-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;color:var(--text2);max-height:96px;overflow:hidden}
+.sc-act{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sc-act .ghost{height:34px;padding:0 14px;font-size:13px}
+
+/* ===== toast ===== */
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:120;max-width:min(420px,calc(100vw - 32px));padding:10px 18px;border-radius:var(--r-full);background:var(--text);color:var(--bg);font:500 13.5px var(--font-d);box-shadow:var(--shadow);animation:rise .3s var(--emph) both;transition:opacity .35s}
+.toast.out{opacity:0}
+
 /* ============ responsive ============ */
 @media(max-width:700px){
  .bar{margin:8px 8px 4px;padding:6px 8px 6px 10px}
